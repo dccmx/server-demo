@@ -15,6 +15,9 @@
 #include <event2/util.h>
 #include <event2/event.h>
 
+
+#include "common.h"
+
 static int calc_success_count = 0;
 static int calc_fail_count = 0;
 static int accept_count = 0;
@@ -40,7 +43,7 @@ int main(int argc, char **argv) {
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
-  sin.sin_port = htons(1234);
+  sin.sin_port = htons(PORT);
 
   listener = evconnlistener_new_bind(base, listener_cb, (void *)base,
       LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE, -1,
@@ -59,7 +62,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  printf("listenning on port 1234...\n");
+  printf("listenning on port %d...\n", PORT);
 
   event_base_dispatch(base);
 

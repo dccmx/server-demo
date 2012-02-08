@@ -9,6 +9,8 @@
 #include <pthread.h>
 #include <sys/time.h>
 
+#include "common.h"
+
 #define LOCK_INC(var) \
   do{\
     pthread_mutex_lock(&stat_lock);\
@@ -16,7 +18,6 @@
     pthread_mutex_unlock(&stat_lock);\
   }while(0)
 
-#define NUM_CACL 100
 
 pthread_mutex_t init_count_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -61,7 +62,7 @@ void *do_a_plus_b(void *arg) {
   memset((void *) &server_addr, 0, sizeof(struct sockaddr_in));
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = inet_addr(server_ip);
-  server_addr.sin_port = htons(1234);
+  server_addr.sin_port = htons(PORT);
 
   pthread_mutex_lock(&init_count_mutex);
   init_count++;

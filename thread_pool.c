@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "common.h"
+
 #define LOCK_INC(var) \
   do{\
     pthread_mutex_lock(&stat_lock);\
@@ -14,7 +16,6 @@
     pthread_mutex_unlock(&stat_lock);\
   }while(0)
 
-#define NUM_CACL 100
 #define NUM_THREAD 10
 
 pthread_mutex_t stat_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -114,7 +115,7 @@ int main() {
 
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  server_addr.sin_port = htons(1234);
+  server_addr.sin_port = htons(PORT);
   if (bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1 || listen(listen_fd, 511) == -1) {
     perror("listen");
     exit(-1);
@@ -124,7 +125,7 @@ int main() {
     pthread_create(&threads[i], NULL, handle_client, NULL);
   }
 
-  printf("listenning on port 1234...\n");
+  printf("listenning on port %d...\n", PORT);
 
   for (i = 0; ; i++) {
     int client_fd, addrlen;
