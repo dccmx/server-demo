@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #define LOCK_INC(var) \
   do{\
@@ -118,10 +119,13 @@ ERROR:
 }
 
 int main(int argc, char *argv[]) {
-  int i;
+  int i, timeuse;
   void *ret;
+  struct timeval start, end;
 
   server_ip = argv[1];
+
+  gettimeofday(&start, NULL);
 
   if (argc > 2) total_client = atoi(argv[2]);
 
@@ -133,10 +137,15 @@ int main(int argc, char *argv[]) {
     pthread_join(threads[i], &ret);
   }
 
+  gettimeofday(&end, NULL );
+  timeuse = 1000 * ( end.tv_sec - start.tv_sec ) + (end.tv_usec - start.tv_usec) / 1000;
+
   printf("\nconnect successfully %d\n"
       "connect failed %d\n"
       "calculate %d\n"
-      "calculate successfully %d\n",
+      "calculate successfully %d\n"
+      "total time %dms\n",
       conn_success_count, conn_fail_count,
-      calc_count, calc_success_count);
+      calc_count, calc_success_count,
+      timeuse);
 }
