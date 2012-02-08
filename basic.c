@@ -6,6 +6,8 @@
 #include <netdb.h>
 #include <signal.h>
 
+static int calc_count = 0;
+
 void handle_client(int fd) {
   int a, b, c;
   read(fd, &a, sizeof(int));
@@ -15,11 +17,12 @@ void handle_client(int fd) {
   c = htons(a + b);
   write(fd, &c, sizeof(int));
   close(fd);
+  calc_count++;
 }
 
 void handle_signal(int signum) {
   if (signum == SIGINT) {
-    printf("shutdown now...\n");
+    printf("totally %d calculations\nshutdown now...\n", calc_count);
     exit(0);
   }
 }
