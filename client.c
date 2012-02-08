@@ -144,8 +144,8 @@ int main(int argc, char *argv[]) {
       "connect failed %d\n"
       "calculate %d\n"
       "calculate successfully %d\n"
-      "total time %dms\n",
+      "total time %d.%ds\n",
       conn_success_count, conn_fail_count,
       calc_count, calc_success_count,
-      timeuse);
+      timeuse / 1000, timeuse % 1000);
 }
