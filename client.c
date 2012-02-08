@@ -15,7 +15,7 @@
     pthread_mutex_unlock(&stat_lock);\
   }while(0)
 
-#define NUM_CACL 2000
+#define NUM_CACL 100
 
 pthread_mutex_t init_count_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;

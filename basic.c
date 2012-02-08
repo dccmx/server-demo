@@ -6,7 +6,7 @@
 #include <netdb.h>
 #include <signal.h>
 
-#define NUM_CACL 2000
+#define NUM_CACL 100
 
 static int calc_success_count = 0;
 static int calc_fail_count = 0;

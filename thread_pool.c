@@ -14,7 +14,7 @@
     pthread_mutex_unlock(&stat_lock);\
   }while(0)
 
-#define NUM_CACL 2000
+#define NUM_CACL 100
 #define NUM_THREAD 10
 
 pthread_mutex_t stat_lock = PTHREAD_MUTEX_INITIALIZER;
