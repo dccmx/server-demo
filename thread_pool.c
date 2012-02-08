@@ -68,9 +68,9 @@ void *handle_client(void *arg) {
         LOCK_INC(calc_fail_count);
         goto ERROR;
       }
-      a = ntohs(a);
-      b = ntohs(b);
-      c = htons(a + b);
+      a = ntohl(a);
+      b = ntohl(b);
+      c = htonl(a + b);
       if (nwrite(fd, &c, sizeof(int)) == -1) {
         perror("write");
         LOCK_INC(calc_fail_count);

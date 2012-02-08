@@ -1,4 +1,4 @@
-all: client a_plus_b_basic a_plus_b_mt a_plus_b_tp
+all: client a_plus_b_basic a_plus_b_mt a_plus_b_tp a_plus_b_async
 
 client: client.c
 	gcc -o client client.c
@@ -11,3 +11,6 @@ a_plus_b_mt: multi_thread.c
 
 a_plus_b_tp: thread_pool.c
 	gcc -o a_plus_b_tp thread_pool.c
+
+a_plus_b_async: async.c
+	gcc -o a_plus_b_async async.c -levent

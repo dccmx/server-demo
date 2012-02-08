@@ -43,9 +43,9 @@ void handle_client(int fd) {
       calc_fail_count++;
       goto ERROR;
     }
-    a = ntohs(a);
-    b = ntohs(b);
-    c = htons(a + b);
+    a = ntohl(a);
+    b = ntohl(b);
+    c = htonl(a + b);
     if (nwrite(fd, &c, sizeof(int)) == -1) {
       perror("write");
       calc_fail_count++;

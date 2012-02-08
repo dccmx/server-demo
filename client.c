@@ -90,8 +90,8 @@ void *do_a_plus_b(void *arg) {
     int a, b, c, ta, tb;
     a = i;
     b = i + 1;
-    ta = htons(a);
-    tb = htons(b);
+    ta = htonl(a);
+    tb = htonl(b);
     LOCK_INC(calc_count);
     if (nwrite(fd, &ta, sizeof(int)) == -1 || nwrite(fd, &tb, sizeof(int)) == -1) {
       perror("write");
@@ -103,7 +103,7 @@ void *do_a_plus_b(void *arg) {
       LOCK_INC(calc_count);
       goto ERROR;
     }
-    c = ntohs(c);
+    c = ntohl(c);
     if (c != a + b) {
       fprintf(stderr, "error: %d+%d=%d\n", a, b, c);
     } else {
