@@ -14,3 +14,6 @@ a_plus_b_tp: thread_pool.c
 
 a_plus_b_async: async.c
 	gcc -o a_plus_b_async async.c -levent
+
+clean:
+	rm -rf a_plus_b_* client

@@ -22,6 +22,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 int init_count = 0;
 int total_client = 1000;
 static pthread_t threads[1000];
+const char *server_ip;
 
 pthread_mutex_t stat_lock = PTHREAD_MUTEX_INITIALIZER;
 static int calc_success_count = 0;
@@ -58,7 +59,7 @@ void *do_a_plus_b(void *arg) {
   }
   memset((void *) &server_addr, 0, sizeof(struct sockaddr_in));
   server_addr.sin_family = AF_INET;
-  server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  server_addr.sin_addr.s_addr = inet_addr(server_ip);
   server_addr.sin_port = htons(1234);
 
   pthread_mutex_lock(&init_count_mutex);
@@ -120,7 +121,9 @@ int main(int argc, char *argv[]) {
   int i;
   void *ret;
 
-  if (argc > 1) total_client = atoi(argv[1]);
+  server_ip = argv[1];
+
+  if (argc > 2) total_client = atoi(argv[2]);
 
   for (i = 0; i < total_client; i++) {
     pthread_create(&threads[i], NULL, do_a_plus_b, NULL);
