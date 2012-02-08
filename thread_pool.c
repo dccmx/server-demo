@@ -5,12 +5,26 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <signal.h>
+#include <pthread.h>
+
+#define LOCK_INC(var) \
+  do{\
+    pthread_mutex_lock(&stat_lock);\
+    var++;\
+    pthread_mutex_unlock(&stat_lock);\
+  }while(0)
 
 #define NUM_CACL 2000
+#define NUM_THREAD 10
 
+pthread_mutex_t stat_lock = PTHREAD_MUTEX_INITIALIZER;
 static int calc_success_count = 0;
 static int calc_fail_count = 0;
 static int accept_count = 0;
+
+pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
+static int client_fds[1000];
+static int num_client = 0;
 
 int nread(int fd, void *data, int size) {
   int ret, total = 0;
@@ -30,32 +44,47 @@ int nwrite(int fd, void *data, int size) {
   }
 }
 
-void handle_client(int fd) {
-  int i;
-  if (nwrite(fd, &i, sizeof(int)) == -1) {
-    perror("write");
-    goto ERROR;
-  }
-  for (i = 0; i < NUM_CACL; i++) {
-    int a, b, c;
-    if (nread(fd, &a, sizeof(int)) == -1 || nread(fd, &b, sizeof(int)) == -1) {
-      perror("read");
-      calc_fail_count++;
-      goto ERROR;
+void *handle_client(void *arg) {
+  int i, fd;
+
+  while (1) {
+    pthread_mutex_lock(&client_lock);
+    if (num_client >= accept_count) {
+      pthread_mutex_unlock(&client_lock);
+      continue;
     }
-    a = ntohs(a);
-    b = ntohs(b);
-    c = htons(a + b);
-    if (nwrite(fd, &c, sizeof(int)) == -1) {
+    fd = client_fds[num_client];
+    num_client++;
+    pthread_mutex_unlock(&client_lock);
+
+    if (nwrite(fd, &i, sizeof(int)) == -1) {
       perror("write");
-      calc_fail_count++;
       goto ERROR;
     }
-    calc_success_count++;
-  }
+    for (i = 0; i < NUM_CACL; i++) {
+      int a, b, c;
+      if (nread(fd, &a, sizeof(int)) == -1 || nread(fd, &b, sizeof(int)) == -1) {
+        perror("read");
+        LOCK_INC(calc_fail_count);
+        goto ERROR;
+      }
+      a = ntohs(a);
+      b = ntohs(b);
+      c = htons(a + b);
+      if (nwrite(fd, &c, sizeof(int)) == -1) {
+        perror("write");
+        LOCK_INC(calc_fail_count);
+        goto ERROR;
+      }
+      LOCK_INC(calc_success_count);
+    }
 
 ERROR:
-  close(fd);
+    close(fd);
+  }
+
+  free(arg);
+  return NULL;
 }
 
 void handle_signal(int signum) {
@@ -69,8 +98,10 @@ void handle_signal(int signum) {
   }
 }
 
+pthread_t threads[200];
+
 int main() {
-  int listen_fd, on = 1;
+  int listen_fd, i, on = 1;
   struct sockaddr_in server_addr;
 
   signal(SIGINT, handle_signal);
@@ -89,9 +120,13 @@ int main() {
     exit(-1);
   }
 
+  for (i = 0; i < NUM_THREAD; i++) {
+    pthread_create(&threads[i], NULL, handle_client, NULL);
+  }
+
   printf("listenning on port 1234...\n");
 
-  while (1) {
+  for (i = 0; ; i++) {
     int client_fd, addrlen;
     struct sockaddr_in client_addr;
     addrlen = sizeof(client_addr);
@@ -100,7 +135,7 @@ int main() {
       perror("accept");
       continue;
     }
+    client_fds[accept_count] = client_fd;
     accept_count++;
-    handle_client(client_fd);
   }
 }

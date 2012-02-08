@@ -5,9 +5,18 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <signal.h>
+#include <pthread.h>
+
+#define LOCK_INC(var) \
+  do{\
+    pthread_mutex_lock(&stat_lock);\
+    var++;\
+    pthread_mutex_unlock(&stat_lock);\
+  }while(0)
 
 #define NUM_CACL 2000
 
+pthread_mutex_t stat_lock = PTHREAD_MUTEX_INITIALIZER;
 static int calc_success_count = 0;
 static int calc_fail_count = 0;
 static int accept_count = 0;
@@ -30,8 +39,8 @@ int nwrite(int fd, void *data, int size) {
   }
 }
 
-void handle_client(int fd) {
-  int i;
+void *handle_client(void *arg) {
+  int i, fd = *(int*)arg;
   if (nwrite(fd, &i, sizeof(int)) == -1) {
     perror("write");
     goto ERROR;
@@ -40,7 +49,7 @@ void handle_client(int fd) {
     int a, b, c;
     if (nread(fd, &a, sizeof(int)) == -1 || nread(fd, &b, sizeof(int)) == -1) {
       perror("read");
-      calc_fail_count++;
+      LOCK_INC(calc_fail_count);
       goto ERROR;
     }
     a = ntohs(a);
@@ -48,14 +57,16 @@ void handle_client(int fd) {
     c = htons(a + b);
     if (nwrite(fd, &c, sizeof(int)) == -1) {
       perror("write");
-      calc_fail_count++;
+      LOCK_INC(calc_fail_count);
       goto ERROR;
     }
-    calc_success_count++;
+    LOCK_INC(calc_success_count);
   }
 
 ERROR:
   close(fd);
+  free(arg);
+  return NULL;
 }
 
 void handle_signal(int signum) {
@@ -101,6 +112,9 @@ int main() {
       continue;
     }
     accept_count++;
-    handle_client(client_fd);
+    int *fd = malloc(sizeof(int));
+    *fd = client_fd;
+    pthread_t thread;
+    pthread_create(&thread, NULL, handle_client, (void*)fd);
   }
 }
