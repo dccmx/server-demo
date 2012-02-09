@@ -95,7 +95,7 @@ int main() {
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
   server_addr.sin_port = htons(PORT);
-  if (bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1 || listen(listen_fd, 511) == -1) {
+  if (bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1 || listen(listen_fd, BACKLOG) == -1) {
     perror("listen");
     exit(-1);
   }
