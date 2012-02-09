@@ -54,7 +54,7 @@ int nwrite(int fd, void *data, int size) {
 }
 
 void *do_a_plus_b(void *arg) {
-  int fd, i, on = 1, timeuse;
+  int calc = 0, calc_success = 0, fd, i, on = 1, timeuse;
   struct sockaddr_in server_addr;
   struct timeval timeout={5, 0};
   struct timeval start, end;
@@ -105,7 +105,7 @@ void *do_a_plus_b(void *arg) {
     b = i + 1;
     ta = htonl(a);
     tb = htonl(b);
-    LOCK_INC(calc_count, 1);
+    calc++;
     if (nwrite(fd, &ta, sizeof(int)) == -1 || nwrite(fd, &tb, sizeof(int)) == -1) {
       perror("write");
       goto ERROR;
@@ -113,14 +113,14 @@ void *do_a_plus_b(void *arg) {
     if (nread(fd, &c, sizeof(int)) == -1) {
       fprintf(stderr, "fd: %d ", fd);
       perror("read");
-      LOCK_INC(calc_count, 1);
+      calc++;
       goto ERROR;
     }
     c = ntohl(c);
     if (c != a + b) {
       fprintf(stderr, "error: %d+%d=%d\n", a, b, c);
     } else {
-      LOCK_INC(calc_success_count, 1);
+      calc_success++;
     }
   }
 
@@ -128,6 +128,8 @@ void *do_a_plus_b(void *arg) {
   timeuse = 1000 * ( end.tv_sec - start.tv_sec ) + (end.tv_usec - start.tv_usec) / 1000;
   LOCK_INC(total_time, timeuse);
   LOCK_INC(total_finish, 1);
+  LOCK_INC(calc_count, calc);
+  LOCK_INC(calc_success_count, calc_success);
 
 ERROR:
   close(fd);
