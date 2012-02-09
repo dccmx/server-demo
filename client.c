@@ -78,7 +78,7 @@ void *do_a_plus_b(void *arg) {
     fprintf(stderr, "\nGO!!!\n");
     pthread_cond_broadcast(&cond);
   } else {
-    fprintf(stderr, "wait[%-3d %3d] ", init_count, fd);
+    fprintf(stderr, "READY[%-3d] ", init_count);
     if (init_count % 10 == 0) fprintf(stderr, "\n");
     pthread_cond_wait(&cond, &init_count_mutex);
   }
