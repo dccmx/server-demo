@@ -53,12 +53,16 @@ int nwrite(int fd, void *data, int size) {
 void *do_a_plus_b(void *arg) {
   int fd, i, on = 1;
   struct sockaddr_in server_addr;
+  struct timeval timeout={5, 0};
 
   fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (fd == -1 || setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
     perror("create socket");
     goto ERROR;
   }
+  setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+  setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
   memset((void *) &server_addr, 0, sizeof(struct sockaddr_in));
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = inet_addr(server_ip);
